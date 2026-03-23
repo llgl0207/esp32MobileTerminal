@@ -1,8 +1,8 @@
 ﻿#include <Arduino.h>
 #include <SPI.h>
 #include <TFT_eSPI.h>
-#include <lvgl.h>
-#include <demos/lv_demos.h>
+/* #include <lvgl.h>
+#include <demos/lv_demos.h> */
 
 TFT_eSPI tft = TFT_eSPI();
 
@@ -156,6 +156,21 @@ void calibrateTouch() {
     touch_y_min = raw_y[1];
     touch_y_max = raw_y[2];
 
+    Serial.println("\n--- Touch Calibration Results ---");
+    Serial.printf("touch_x_min = %d\n", touch_x_min);
+    Serial.printf("touch_x_max = %d\n", touch_x_max);
+    Serial.printf("touch_y_min = %d\n", touch_y_min);
+    Serial.printf("touch_y_max = %d\n", touch_y_max);
+    Serial.printf("swap_xy = %s\n", swap_xy ? "true" : "false");
+    Serial.println("---------------------------------");
+    
+    Serial.println("--- Screen Corners (Raw X, Y) ---");
+    Serial.printf("Top-Left:     X=%d, Y=%d\n", touch_x_min, touch_y_min);
+    Serial.printf("Top-Right:    X=%d, Y=%d\n", touch_x_max, touch_y_min);
+    Serial.printf("Bottom-Left:  X=%d, Y=%d\n", touch_x_min, touch_y_max);
+    Serial.printf("Bottom-Right: X=%d, Y=%d\n", touch_x_max, touch_y_max);
+    Serial.println("---------------------------------\n");
+
     tft.fillScreen(TFT_BLACK);
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.drawString("OK!", 10, 10);
@@ -183,7 +198,7 @@ bool readTouchMapped(int &x, int &y) {
 }
 
 /* LVGL 显示刷新回调 */
-void my_disp_flush(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *color_p) {
+/* void my_disp_flush(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *color_p) {
     uint32_t w = (area->x2 - area->x1 + 1);
     uint32_t h = (area->y2 - area->y1 + 1);
 
@@ -193,10 +208,10 @@ void my_disp_flush(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *c
     tft.endWrite();
 
     lv_disp_flush_ready(disp_drv);
-}
+} */
 
 /* LVGL 触摸读取回调 */
-void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
+/* void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
     int x, y;
     if (readTouchMapped(x, y)) {
         data->state = LV_INDEV_STATE_PR;
@@ -205,14 +220,14 @@ void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
     } else {
         data->state = LV_INDEV_STATE_REL;
     }
-}
+} */
 
-// 屏幕尺寸，需根据你的屏幕实际情况确认
+/* // 屏幕尺寸，需根据你的屏幕实际情况确认
 static const uint16_t screenWidth  = 320;
 static const uint16_t screenHeight = 240;
 
 static lv_disp_draw_buf_t draw_buf;
-static lv_color_t buf[screenWidth * screenHeight / 10]; // 缓冲区大小可根据内存调整
+static lv_color_t buf[screenWidth * screenHeight / 10]; // 缓冲区大小可根据内存调整 */
 
 void setup() {
     Serial.begin(115200);
@@ -225,7 +240,7 @@ void setup() {
     // 校准触摸（如果你之前已经记下校准值，可以直接跳过这里节省开机时间）
     calibrateTouch();
 
-    // 2. 初始化 LVGL
+/*     // 2. 初始化 LVGL
     lv_init();
     lv_disp_draw_buf_init(&draw_buf, buf, NULL, screenWidth * screenHeight / 10);
 
@@ -268,10 +283,10 @@ void setup() {
     //lv_demo_widgets();
     
     // 或者运行压力测试
-     lv_demo_stress();
+     lv_demo_stress(); */
 }
 
 void loop() {
-    lv_timer_handler(); // 处理 LVGL 的绘图和事件
+    /* lv_timer_handler(); // 处理 LVGL 的绘图和事件 */
     delay(5);           // 让出一点时间
 }
