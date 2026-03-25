@@ -24,6 +24,8 @@
 
     // ======= 触摸屏读取函数 =======
     extern int touchX, touchY; // 全局变量存储触摸坐标
+    extern int lastTouchX, lastTouchY; // 上一次的触摸坐标
+    extern int deltaTouchX, deltaTouchY; // 当前触摸坐标与上一次的差值
     extern long touchTime; // 触摸持续时间，单位毫秒
 
     #define Xlength 320

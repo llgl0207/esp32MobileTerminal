@@ -2,6 +2,10 @@
 
 int touchX = -1;
 int touchY = -1;
+int lastTouchX = -1;
+int lastTouchY = -1;
+int deltaTouchX = 0;
+int deltaTouchY = 0;
 void getTouch(){
         pinMode(TFT_TOUCH_YN, OUTPUT);
         pinMode(TFT_TOUCH_YP, OUTPUT);
@@ -27,4 +31,10 @@ void getTouch(){
             if(InvertY) touchY = Ylength - touchY;
         }
         if(rawOut) touchY = analogRead(TFT_TOUCH_YN);
+
+        // 计算触摸坐标的变化量
+        deltaTouchX = touchX - lastTouchX;
+        deltaTouchY = touchY - lastTouchY;
+        lastTouchX = touchX;
+        lastTouchY = touchY;
     }

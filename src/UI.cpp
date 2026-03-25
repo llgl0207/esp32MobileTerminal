@@ -5,9 +5,22 @@ std::vector<uiElementBase*> uiElementsPool;
 std::vector<uiButtonBase*> uiButtonsPool;
 
 void uiRender(){
+    tft.fillScreen(TFT_BLACK);
     //Serial.println("Drawing element...");
-    getTouch();
-    btnMgr();
+    for(auto element : uiElementsPool){
+        element->draw(); // 调用每个元素的 draw 方法进行绘制
+    }
+}
+void lowRender(){
+    static uint16_t renderTimer = 0;
+    if(renderTimer<10){
+        renderTimer++;
+        return;
+    }
+    renderTimer=0;
+    
+    tft.fillScreen(TFT_BLACK);
+    //Serial.println("Drawing element...");
     for(auto element : uiElementsPool){
         element->draw(); // 调用每个元素的 draw 方法进行绘制
     }

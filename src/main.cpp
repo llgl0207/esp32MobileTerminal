@@ -10,17 +10,20 @@ void setup() {
     tft.init();
     tft.setRotation(1);
     tft.invertDisplay(false); // 修复 ST7789 屏幕反色问题
-    
     tft.fillScreen(TFT_BLACK);
     tft.drawString("Hello, World!", 100, 10);
     new uiButton("C", 100, 100); // 创建一个按钮实例
+    new uiDragButton("HaHa", 200, 100); // 创建一个按钮实例
+    new uiSlider("Slider", 10, 100, 200, 0.5); // 创建一个滑块实例
+    uiRender();
 }
 
 void loop() {
+    getTouch();
+    btnMgr();
     tft.drawPixel(touchX, touchY, TFT_RED);
     /* Serial.print(touchX);
     Serial.print(",");
     Serial.println(touchY); */
-    uiRender();
-    //delay(5);           // 让出一点时间
+    delay(5);           // 让出一点时间
 }
