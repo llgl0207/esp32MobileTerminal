@@ -35,12 +35,36 @@
             long lastTouchTime=0;
             long clickTimeMax=200;//指定时间内的触摸被认为是一次点击
             bool isPressed=false;
+            bool nowPressed=false;
+            bool isInTheBtn=false;
             bool isLongPressing=false;
-            bool nowPressed(){
-                if(touchX>=x&&touchX<=x+width&&touchY>=y&&touchY<=y+height)
-                    return true;
-                else
-                    return false;
+            void Pressed(){
+                if(isPressed){//这是一个持续按压判断，如果按钮从此处按下，即使后续松手时不在按钮上也判断为按下
+                    if(touchX>=x&&touchX<=x+width&&touchY>=y&&touchY<=y+height){
+                        nowPressed = true;
+                        isInTheBtn = true;
+                        return;
+                    }else if(touchX!=-1&&touchY!=-1){
+                        nowPressed = true;
+                        isInTheBtn = false;
+                        return;
+                    }else{
+                        nowPressed = false;
+                        isInTheBtn = false;
+                        return;
+                    }
+                }
+                if(touchX==-1||touchY==-1){
+                    return;
+                }
+
+                if(touchX>=x&&touchX<=x+width&&touchY>=y&&touchY<=y+height){
+                    nowPressed = true;
+                    isInTheBtn = true;
+                }else{
+                    nowPressed = false;
+                    isInTheBtn = false;
+                }
             }
         public:
             // 定义触摸响应函数，根据触摸状态调用不同的事件处理函数
@@ -51,13 +75,14 @@
             virtual void longPressing(){};
             virtual void endLongPress(){};
             bool touchResponse(){
-                if(!isPressed&&!nowPressed())return false;//一直以来都没按下
+                Pressed();
+                if(!isPressed&&!nowPressed)return false;//一直以来都没按下
                 if(!isPressed){//没按下->按下
                     startPress();
                     isPressed=true;
                     lastTouchTime=millis();
                     uiRender();
-                }else if(nowPressed()){//按下->一直按着
+                }else if(nowPressed){//按下->一直按着
                     touchTime=millis()-lastTouchTime;
                     if(touchTime>clickTimeMax){
                         if(!isLongPressing){

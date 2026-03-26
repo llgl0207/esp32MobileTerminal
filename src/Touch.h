@@ -4,9 +4,6 @@
 #define InvertY 1
 #define rawOut 0
 
-#define clickTime 200
-
-
 #ifndef TOUCH_H
 #define TOUCH_H 
     
