@@ -5,9 +5,12 @@
 
 #ifndef UI_H
 #define UI_H
+    extern uint32_t backgoundColor; // 声明全局背景颜色变量
     void uiRender();
     void lowRender();
     void btnMgr();
+
+    void nullFunc();
     class uiElementBase;
     class uiButtonBase;
     class uiButton;
@@ -67,13 +70,20 @@
                 }
             }
         public:
+            void (*startPressCallback)()=nullFunc;
+            void (*endClickCallback)()=nullFunc;
+            void (*startLongPressCallback)()=nullFunc;
+            void (*longPressingCallback)()=nullFunc;
+            void (*endLongPressCallback)()=nullFunc;
             // 定义触摸响应函数，根据触摸状态调用不同的事件处理函数
             // 虚函数请在子类中实现
-            virtual void startPress(){};
-            virtual void endClick(){};
-            virtual void startLongPress(){};
-            virtual void longPressing(){};
-            virtual void endLongPress(){};
+            virtual void startPress(){startPressCallback();};
+            virtual void endClick(){endClickCallback();};
+            virtual void startLongPress(){startLongPressCallback();};
+            virtual void longPressing(){longPressingCallback();};
+            virtual void endLongPress(){endLongPressCallback();};
+
+            
             bool touchResponse(){
                 Pressed();
                 if(!isPressed&&!nowPressed)return false;//一直以来都没按下
@@ -126,23 +136,30 @@
             void startPress(){
                 backgroundColor = ~backgroundColor; // 按下时切换背景颜色
                 textColor = ~textColor;
+                startPressCallback();
             }
             void endClick(){
                 backgroundColor = ~backgroundColor; // 抬起时切换背景颜色
                 textColor = ~textColor;
+                endClickCallback();
+                if(isInTheBtn){//只有在判定为短按且在按钮内的时候才触发点击事件
+                    endClickCallback();
+                }
             }
             void longPressing(){
-
+                longPressingCallback();
             }
             void endLongPress(){
                 backgroundColor = ~backgroundColor; // 抬起时切换背景颜色
                 textColor = ~textColor;
+                endLongPressCallback();
             }
         public:
 
-            uiButton(const char* text, int16_t x, int16_t y, int16_t width=50, int16_t height=25, uint32_t backgroundColor=TFT_CYAN, uint32_t textColor=TFT_BLACK){
+            uiButton(const char* text, int16_t x, int16_t y,void (*clickFuncPtr)() = nullFunc, int16_t width=50, int16_t height=25, uint32_t backgroundColor=TFT_CYAN, uint32_t textColor=TFT_BLACK){
                 this->x = x;
                 this->y = y;
+                this->endClickCallback = clickFuncPtr;
                 this->width = width;
                 this->height = height;
                 this->text = text;
@@ -152,6 +169,7 @@
             void draw(){
                 // 绘制按钮
                 tft.fillRect(x, y, width, height, backgroundColor);
+                tft.drawRect(x, y, width, height, TFT_BLACK);//绘制边框
                 uint32_t lastBackgroundColor = tft.textbgcolor;
                 uint32_t lastColor = tft.textcolor;
                 tft.setTextColor(textColor,backgroundColor);      // 设置文本颜色
@@ -171,28 +189,29 @@
             }
         public:
             uiDragButton(const char* text, int16_t x, int16_t y, int16_t width=50, int16_t height=25, uint32_t backgroundColor=TFT_CYAN, uint32_t textColor=TFT_BLACK)
-                : uiButton(text, x, y, width, height, backgroundColor, textColor) {
+                : uiButton(text, x, y, nullFunc, width, height, backgroundColor, textColor) {
             }
     };
 
         class uiSlider : public uiButton{
+        public:
+            float percentage;
         protected:
             int16_t slideX;
             int16_t slideY;
             int16_t slideRange;
-            float percentage;
+            
             char textBuffer[20];
             void longPressing(){
                 x+=deltaTouchX;//处理位移
                 if(x<slideX-width/2)x=slideX-width/2;//防止滑块滑出
                 if(x>slideX+slideRange-width/2)x=slideX+slideRange-width/2;//防止滑块滑出
                 percentage=(x+width/2-slideX)/(float)slideRange;//计算比例
-                sprintf(textBuffer,"%.2f",percentage);
-                text=textBuffer;
+                longPressingCallback();
             }
         public:
             uiSlider(const char* text, int16_t x, int16_t y, int16_t slideRange, float percentage, int16_t width=50, int16_t height=25, uint32_t backgroundColor=TFT_CYAN, uint32_t textColor=TFT_BLACK)
-                : uiButton(text, x+slideRange*percentage-width/2, y-height/2, width, height, backgroundColor, textColor) {
+                : uiButton(text, x+slideRange*percentage-width/2, y-height/2, nullFunc, width, height, backgroundColor, textColor) {
                 this->slideRange=slideRange;
                 this->percentage=percentage;
                 slideX=x;
@@ -201,8 +220,17 @@
             }
             void draw(){
                 tft.drawLine(slideX, slideY, slideX+slideRange, slideY, TFT_RED);
+                sprintf(textBuffer,"%.2f",percentage);
+                text=textBuffer;
+                x=slideX+slideRange*percentage-width/2;
+                //tft.drawFloat(percentage,2,0,0);
                 uiButton::draw();
             }
+
+            /* void writePer(float newPer){
+                percentage=newPer;
+                x=slideX+slideRange*percentage-width/2;
+            } */
     };
 
     class uiText : public uiElementBase{

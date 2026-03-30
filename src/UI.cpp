@@ -4,8 +4,12 @@ TFT_eSPI tft = TFT_eSPI(); // 创建 TFT 对象
 std::vector<uiElementBase*> uiElementsPool;
 std::vector<uiButtonBase*> uiButtonsPool;
 
+uint32_t backgoundColor = TFT_WHITE;
+void nullFunc(){
+    //Need to be empty.
+}
 void uiRender(){
-    tft.fillScreen(TFT_BLACK);
+    tft.fillScreen(backgoundColor);
     //Serial.println("Drawing element...");
     for(auto element : uiElementsPool){
         element->draw(); // 调用每个元素的 draw 方法进行绘制
@@ -19,7 +23,7 @@ void lowRender(){
     }
     renderTimer=0;
     
-    tft.fillScreen(TFT_BLACK);
+    tft.fillScreen(backgoundColor);
     //Serial.println("Drawing element...");
     for(auto element : uiElementsPool){
         element->draw(); // 调用每个元素的 draw 方法进行绘制
