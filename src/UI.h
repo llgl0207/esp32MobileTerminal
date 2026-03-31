@@ -37,23 +37,25 @@
             long touchTime=0;
             long lastTouchTime=0;
             long clickTimeMax=200;//指定时间内的触摸被认为是一次点击
-            bool isPressed=false;
+            bool lastPressed=false;
             bool nowPressed=false;
-            bool isInTheBtn=false;
+            bool lastInTheBtn=false;
+            bool nowInTheBtn=false;
             bool isLongPressing=false;
             void Pressed(){
-                if(isPressed){//这是一个持续按压判断，如果按钮从此处按下，即使后续松手时不在按钮上也判断为按下
+                lastInTheBtn = nowInTheBtn;
+                if(lastPressed){//这是一个持续按压判断，如果按钮从此处按下，即使后续松手时不在按钮上也判断为按下
                     if(touchX>=x&&touchX<=x+width&&touchY>=y&&touchY<=y+height){
                         nowPressed = true;
-                        isInTheBtn = true;
+                        nowInTheBtn = true;
                         return;
                     }else if(touchX!=-1&&touchY!=-1){
                         nowPressed = true;
-                        isInTheBtn = false;
+                        nowInTheBtn = false;
                         return;
                     }else{
                         nowPressed = false;
-                        isInTheBtn = false;
+                        nowInTheBtn = false;
                         return;
                     }
                 }
@@ -63,10 +65,10 @@
 
                 if(touchX>=x&&touchX<=x+width&&touchY>=y&&touchY<=y+height){
                     nowPressed = true;
-                    isInTheBtn = true;
+                    nowInTheBtn = true;
                 }else{
                     nowPressed = false;
-                    isInTheBtn = false;
+                    nowInTheBtn = false;
                 }
             }
         public:
@@ -86,10 +88,10 @@
             
             bool touchResponse(){
                 Pressed();
-                if(!isPressed&&!nowPressed)return false;//一直以来都没按下
-                if(!isPressed){//没按下->按下
+                if(!lastPressed&&!nowPressed)return false;//一直以来都没按下
+                if(!lastPressed){//没按下->按下
                     startPress();
-                    isPressed=true;
+                    lastPressed=true;
                     lastTouchTime=millis();
                     uiRender();
                 }else if(nowPressed){//按下->一直按着
@@ -103,7 +105,7 @@
                     }
                     lowRender();
                 }else{//按下->没按下
-                    isPressed=false;
+                    lastPressed=false;
                     if(isLongPressing){
                         endLongPress();
                         isLongPressing=false;
@@ -141,7 +143,7 @@
             void endClick(){
                 backgroundColor = ~backgroundColor; // 抬起时切换背景颜色
                 textColor = ~textColor;
-                if(isInTheBtn){//只有在判定为短按且在按钮内的时候才触发点击事件
+                if(lastInTheBtn){//只有在判定为短按且在按钮内的时候才触发点击事件
                     endClickCallback();
                 }
             }
@@ -176,6 +178,7 @@
                               x + (width - tft.textWidth(text)) / 2,  // X坐标
                               y + (height - tft.fontHeight()) / 2);   // Y坐标
                 tft.setTextColor(lastColor, lastBackgroundColor); // 恢复之前的颜色设置
+
             }
 
     };
