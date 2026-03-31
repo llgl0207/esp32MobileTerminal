@@ -16,7 +16,9 @@ void setup() {
     tft.drawString("Hello, World!", 100, 10);
     new uiButton("C", 100, 100, btnCallback); // 创建一个按钮实例
     new uiDragButton("HaHa", 200, 100); // 创建一个按钮实例
-    sliderPtr = new uiSlider("Slider", 10, 100, 200, 0.5); // 创建一个滑块实例
+    sliderPtr = new uiSlider("Slider", 25, 215, 270
+        
+        , 0.5); // 创建一个滑块实例
     uiRender();
 }
 
@@ -31,5 +33,5 @@ void loop() {
 }
 
 void btnCallback() {
-    sliderPtr->percentage = 0.5;
+    sliderPtr->percentage = 1.3;
 }

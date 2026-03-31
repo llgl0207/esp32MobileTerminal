@@ -141,7 +141,6 @@
             void endClick(){
                 backgroundColor = ~backgroundColor; // 抬起时切换背景颜色
                 textColor = ~textColor;
-                endClickCallback();
                 if(isInTheBtn){//只有在判定为短按且在按钮内的时候才触发点击事件
                     endClickCallback();
                 }
