@@ -6,33 +6,47 @@
 #ifndef UI_H
 #define UI_H
     extern uint32_t backgoundColor; // 声明全局背景颜色变量
-    void uiRender();
-    void lowRender();
+    void uiRender();//渲染函数，执行该函数将直接渲染单帧
+    void lowRender();//渲染函数，执行该函数将拉大延迟渲染单帧
     void btnMgr();
 
     void popUpInverseColor();
-    void popUp(char* text);
-
+    void popUp(char const* text);
     void nullFunc();
     class uiElementBase;
     class uiButtonBase;
     class uiButton;
     class uiText;
     extern TFT_eSPI tft;
-    extern std::vector<uiElementBase*> uiElementsPool; // 存储所有 UI 元素的容器
-    extern std::vector<uiButtonBase*> uiButtonsPool; // 存储所有按钮的容器
+    class uiActivity{
+        public:
+        char const* activityName;//活动名称
+        std::vector<uiElementBase*> uiElementsPool; // 存储所有 UI 元素的容器
+        std::vector<uiButtonBase*> uiButtonsPool; // 存储所有按钮的容器
+        uiActivity(char const* activityName){
+            this->activityName = activityName;
+        }
+        ~uiActivity();
+
+    };
+    extern std::vector<uiActivity*> uiActivityPool;
+    extern uiActivity* controlActivityPtr;
+    extern uiActivity* renderActivityPtr;
+
+    uiActivity* createActivity(char const* activityName);
+    uiActivity* getActivity(char const* activityName);
+    bool deleteActivity(char const* activityName);
+    
 
     class uiElementBase{
         public:
+            uiActivity* thisActivity;
             virtual void draw() = 0; // 纯虚函数，强制子类实现
             uiElementBase(){
-                uiElementsPool.push_back(this); // 将当前对象添加到容器中
+                thisActivity = controlActivityPtr;
+                thisActivity->uiElementsPool.push_back(this); // 将当前对象添加到容器中
             }
-            ~uiElementBase(){
-                // 从容器中移除当前对象
-                auto it = find(uiElementsPool.begin(), uiElementsPool.end(), this);
-                uiElementsPool.erase(it);
-            }
+            ~uiElementBase();
     };
 
     class uiButtonBase : public uiElementBase{
@@ -45,35 +59,7 @@
             bool lastInTheBtn=false;
             bool nowInTheBtn=false;
             bool isLongPressing=false;
-            void Pressed(){
-                lastInTheBtn = nowInTheBtn;
-                if(lastPressed){//这是一个持续按压判断，如果按钮从此处按下，即使后续松手时不在按钮上也判断为按下
-                    if(touchX>=x&&touchX<=x+width&&touchY>=y&&touchY<=y+height){
-                        nowPressed = true;
-                        nowInTheBtn = true;
-                        return;
-                    }else if(touchX!=-1&&touchY!=-1){
-                        nowPressed = true;
-                        nowInTheBtn = false;
-                        return;
-                    }else{
-                        nowPressed = false;
-                        nowInTheBtn = false;
-                        return;
-                    }
-                }
-                if(touchX==-1||touchY==-1){
-                    return;
-                }
-
-                if(touchX>=x&&touchX<=x+width&&touchY>=y&&touchY<=y+height){
-                    nowPressed = true;
-                    nowInTheBtn = true;
-                }else{
-                    nowPressed = false;
-                    nowInTheBtn = false;
-                }
-            }
+            void Pressed();
         public:
             void (*startPressCallback)()=nullFunc;
             void (*endClickCallback)()=nullFunc;
@@ -89,43 +75,14 @@
             virtual void endLongPress(){endLongPressCallback();};
 
             
-            bool touchResponse(){
-                Pressed();
-                if(!lastPressed&&!nowPressed)return false;//一直以来都没按下
-                if(!lastPressed){//没按下->按下
-                    startPress();
-                    lastPressed=true;
-                    lastTouchTime=millis();
-                    uiRender();
-                }else if(nowPressed){//按下->一直按着
-                    touchTime=millis()-lastTouchTime;
-                    if(touchTime>clickTimeMax){
-                        if(!isLongPressing){
-                            isLongPressing=true;
-                            startLongPress();
-                        }
-                        else longPressing();
-                    }
-                    lowRender();
-                }else{//按下->没按下
-                    lastPressed=false;
-                    if(isLongPressing){
-                        endLongPress();
-                        isLongPressing=false;
-                    }else{
-                        endClick();
-                    }
-                    uiRender();
-                }
-                return true;
-            }
+            bool touchResponse();
             uiButtonBase(){
-                uiButtonsPool.push_back(this); // 将当前对象添加到容器中
+                thisActivity->uiButtonsPool.push_back(this); // 将当前对象添加到容器中
             }
             ~uiButtonBase(){
                 // 从容器中移除当前对象
-                auto it = find(uiButtonsPool.begin(), uiButtonsPool.end(), this);
-                uiButtonsPool.erase(it);
+                auto it = find(thisActivity->uiButtonsPool.begin(), thisActivity->uiButtonsPool.end(), this);
+                thisActivity->uiButtonsPool.erase(it);
             }
         protected:
             int16_t x, y, width, height; // 按钮的位置和尺寸
