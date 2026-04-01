@@ -31,5 +31,5 @@ void loop() {
 }
 
 void btnCallback() {
-    sliderPtr->percentage = 0;
+    popUp("Button Clicked");
 }

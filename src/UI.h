@@ -10,6 +10,9 @@
     void lowRender();
     void btnMgr();
 
+    void popUpInverseColor();
+    void popUp(char* text);
+
     void nullFunc();
     class uiElementBase;
     class uiButtonBase;
@@ -134,29 +137,11 @@
     };
 
        class uiButton : public uiButtonBase{
-        protected:
-            void startPress(){
+        public:
+            void inverseColor(){
                 backgroundColor = ~backgroundColor; // 按下时切换背景颜色
                 textColor = ~textColor;
-                startPressCallback();
             }
-            void endClick(){
-                backgroundColor = ~backgroundColor; // 抬起时切换背景颜色
-                textColor = ~textColor;
-                if(lastInTheBtn){//只有在判定为短按且在按钮内的时候才触发点击事件
-                    endClickCallback();
-                }
-            }
-            void longPressing(){
-                longPressingCallback();
-            }
-            void endLongPress(){
-                backgroundColor = ~backgroundColor; // 抬起时切换背景颜色
-                textColor = ~textColor;
-                endLongPressCallback();
-            }
-        public:
-
             uiButton(const char* text, int16_t x, int16_t y,void (*clickFuncPtr)() = nullFunc, int16_t width=50, int16_t height=25, uint32_t backgroundColor=TFT_CYAN, uint32_t textColor=TFT_BLACK){
                 this->x = x;
                 this->y = y;
@@ -180,6 +165,24 @@
                 tft.setTextColor(lastColor, lastBackgroundColor); // 恢复之前的颜色设置
 
             }
+        protected:
+            void startPress(){
+                inverseColor();
+                startPressCallback();
+            }
+            void endClick(){
+                inverseColor();
+                if(lastInTheBtn){//只有在判定为短按且在按钮内的时候才触发点击事件
+                    endClickCallback();
+                }
+            }
+            void longPressing(){
+                longPressingCallback();
+            }
+            void endLongPress(){
+                inverseColor();
+                endLongPressCallback();
+            }
 
     };
 
@@ -192,6 +195,7 @@
         public:
             uiDragButton(const char* text, int16_t x, int16_t y, int16_t width=50, int16_t height=25, uint32_t backgroundColor=TFT_CYAN, uint32_t textColor=TFT_BLACK)
                 : uiButton(text, x, y, nullFunc, width, height, backgroundColor, textColor) {
+                    clickTimeMax=0;
             }
     };
 
