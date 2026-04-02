@@ -35,7 +35,7 @@
 
     uiActivity* createActivity(char const* activityName);
     uiActivity* getActivity(char const* activityName);
-    bool deleteActivity(char const* activityName);
+    bool        deleteActivity(char const* activityName);
     
 
     class uiElementBase{
@@ -209,5 +209,4 @@
                 tft.setTextColor(lastColor, lastBackgroundColor); // 恢复之前的颜色设置
             }
     };
-
 #endif

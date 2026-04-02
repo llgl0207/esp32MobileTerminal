@@ -150,6 +150,6 @@ void popUp(char const* text){
     backBtn = new uiButton(text,sideLength,sideLength,popUpInverseColor,320-2*sideLength,240-2*sideLength,0xFFFF);
     backBtn->startPressCallback = popUpInverseColor;//神秘屎山，这么写只是为了提供一个按钮遮罩，让弹窗界面覆盖在所有按钮之前，阻止下方按钮被点击，并且弹窗界面被按下不变色
     backBtn->endLongPressCallback = popUpInverseColor;
-    closeBtn = new uiButton("X",320-25-sideLength,sideLength,closePopup,25,25,TFT_LIGHTGREY);
+    closeBtn = new uiButton("X",320-35-sideLength,sideLength,closePopup,35,35,TFT_LIGHTGREY);
 }
 
