@@ -49,6 +49,18 @@
             ~uiElementBase();
     };
 
+    class uiDrawCallback: public uiElementBase{
+        public:
+        void (*drawCallback)()=nullFunc;
+        uiDrawCallback(void (*callbackPtr)()){
+            this->drawCallback = callbackPtr;
+        }
+        void draw(){
+            drawCallback();
+        }
+
+    };
+
     class uiButtonBase : public uiElementBase{
         protected:
             long touchTime=0;
@@ -84,7 +96,7 @@
                 auto it = find(thisActivity->uiButtonsPool.begin(), thisActivity->uiButtonsPool.end(), this);
                 thisActivity->uiButtonsPool.erase(it);
             }
-        protected:
+        public:
             int16_t x, y, width, height; // 按钮的位置和尺寸
             const char* text; // 按钮的文本
             uint32_t backgroundColor; // 按钮的背景颜色

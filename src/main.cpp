@@ -2,7 +2,8 @@
 #include <SPI.h>
 #include <TFT_eSPI.h>
 #include "UI.h"
-void btnCallback();
+#include "blockyProg.h"
+
 
 uiSlider *sliderPtr;
 void setup() {
@@ -14,27 +15,20 @@ void setup() {
     tft.invertDisplay(false); // 修复 ST7789 屏幕反色问题
     tft.fillScreen(TFT_WHITE);
     tft.drawString("Hello, World!", 100, 10);
-    createActivity("test");
-    controlActivityPtr = createActivity("Main");
-    renderActivityPtr = getActivity("Main");
-    new uiButton("C", 100, 100, btnCallback); // 创建一个按钮实例
-    new uiDragButton("HaHa", 200, 100); // 创建一个按钮实例
-    sliderPtr = new uiSlider("Slider", 25, 215, 270, 0.5); // 创建一个滑块实例
+    createActivity("Main");
+    blockyProgInit();
+    controlActivityPtr = getActivity("blockyProgInstance");
+    renderActivityPtr = getActivity("blockyProgInstance");
     uiRender();
 }
 
 void loop() {
     getTouch();
     btnMgr();
+    //uiRender();
     tft.drawPixel(touchX, touchY, TFT_RED);
     /* Serial.print(touchX);
     Serial.print(",");
     Serial.println(touchY); */
     delay(5);           // 让出一点时间
-}
-char text[10];
-void btnCallback() {
-    
-    sprintf(text, "result%d",deleteActivity("test")?1:0);
-    popUp(text);
 }
