@@ -120,7 +120,7 @@ void uiRender(){
 }
 void lowRender(){
     static uint16_t renderTimer = 0;
-    if(renderTimer<10){
+    if(renderTimer<1-0){
         renderTimer++;
         return;
     }
@@ -151,5 +151,22 @@ void popUp(char const* text){
     backBtn->startPressCallback = popUpInverseColor;//神秘屎山，这么写只是为了提供一个按钮遮罩，让弹窗界面覆盖在所有按钮之前，阻止下方按钮被点击，并且弹窗界面被按下不变色
     backBtn->endLongPressCallback = popUpInverseColor;
     closeBtn = new uiButton("X",320-35-sideLength,sideLength,closePopup,35,35,TFT_LIGHTGREY);
+}
+
+bool enteredNum = false;
+double uiInputNumber(){ 
+    enteredNum = false;
+    uiActivity* tempControlPtr = controlActivityPtr;
+    uiActivity* tempRenderPtr = renderActivityPtr;
+    controlActivityPtr = createActivity("InputNumber");
+    renderActivityPtr = controlActivityPtr;
+    new uiDrawCallback();
+    uiText* numArray[10];
+
+
+
+
+    controlActivityPtr = tempControlPtr;
+    renderActivityPtr = tempRenderPtr;
 }
 

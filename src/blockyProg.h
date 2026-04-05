@@ -24,6 +24,7 @@
     int16_t getBlockyLength(uint8_t index = blockyPool.size());
     void blockyMoveLeft();
     void blockyMoveRight();
-
+    void switchToBlockyProgAdd();
+    void switchToBlockyProgMain();
 
 #endif

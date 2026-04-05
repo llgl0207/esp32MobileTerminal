@@ -6,6 +6,7 @@
 #ifndef UI_H
 #define UI_H
     extern uint32_t backgoundColor; // 声明全局背景颜色变量
+    extern bool enteredNum;
     void uiRender();//渲染函数，执行该函数将直接渲染单帧
     void lowRender();//渲染函数，执行该函数将拉大延迟渲染单帧
     void btnMgr();
@@ -13,6 +14,7 @@
     void popUpInverseColor();
     void popUp(char const* text);
     void nullFunc();
+    double uiInputNumber();
     class uiElementBase;
     class uiButtonBase;
     class uiButton;
@@ -213,11 +215,15 @@
             const char* Str;
             int16_t x, y; // 文本的位置
             uint32_t color; // 文本的颜色
+            uint8_t font;
+            uiText(const char* Str, int16_t x, int16_t y, uint8_t font=0, uint32_t color=TFT_BLACK)
+                : Str(Str), x(x), y(y), font(font), color(color) {
+            }
             void draw(){
                 uint32_t lastBackgroundColor = tft.textbgcolor;
                 uint32_t lastColor = tft.textcolor;
                 tft.setTextColor(color, lastBackgroundColor);      // 设置文本颜色和背景颜色
-                tft.drawString(Str, x, y);    // 绘制文本
+                tft.drawString(Str, x, y, font);    // 绘制文本
                 tft.setTextColor(lastColor, lastBackgroundColor); // 恢复之前的颜色设置
             }
     };

@@ -65,87 +65,30 @@ void blockyMoveRight(){
 }
 void blockyProgInit(){
     uiActivity* tempControlPtr = controlActivityPtr;
-
-    controlActivityPtr = createActivity("blockyProgInstance");
-
+    //blocky编程的主activity
+    controlActivityPtr = createActivity("blockyProgMain");
     blockyControlSlider = new uiSlider("Control", 25, 220, 270, 0.0);
-    uiButton* leftBtn = new uiButton("<",10,170,blockyMoveLeft);
-    uiButton* rightBtn = new uiButton(">",260,170,blockyMoveRight);
-    uiDrawCallback* back = new uiDrawCallback(blockyMgr);
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
-    blockyPool.push_back(new blockyStart());
+    new uiButton("<",10,170,blockyMoveLeft);
+    new uiButton(">",260,170,blockyMoveRight);
+    new uiButton("Add", 70, 170, switchToBlockyProgAdd);
+    new uiDrawCallback(blockyMgr);
     blockyPool.push_back(new blockyStart());
     //uiButton *btn = new uiButton("Start", 10, 10, nullFunc, 50, 25);
+
+    //blocky编程的添加block的activity
+    controlActivityPtr = createActivity("blockyProgAdd");
+    new uiText("0/0",10,190,2);
+    new uiButton("<",10,205);
+    new uiButton(">",260,205);
+    new uiButton("Back", 70, 205, switchToBlockyProgMain);
+    tft.drawString("Add Block", 70, 190, TFT_BLACK);
     controlActivityPtr = tempControlPtr;
+}
+void switchToBlockyProgAdd(){
+    renderActivityPtr = getActivity("blockyProgAdd");
+}
+void switchToBlockyProgMain(){
+    renderActivityPtr = getActivity("blockyProgMain");
 }
 
 

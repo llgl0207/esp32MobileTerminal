@@ -6,6 +6,19 @@
 
 
 uiSlider *sliderPtr;
+
+void uiRun(void *pvParameters){
+    while(1){
+        getTouch();
+        btnMgr();
+        //uiRender();
+        tft.drawPixel(touchX, touchY, TFT_RED);
+        /* Serial.print(touchX);
+        Serial.print(",");
+        Serial.println(touchY); */
+        vTaskDelay(5);           // 让出一点时间
+    }
+}
 void setup() {
     Serial.begin(115200);
 
@@ -17,18 +30,11 @@ void setup() {
     tft.drawString("Hello, World!", 100, 10);
     createActivity("Main");
     blockyProgInit();
-    controlActivityPtr = getActivity("blockyProgInstance");
-    renderActivityPtr = getActivity("blockyProgInstance");
+    controlActivityPtr = getActivity("blockyProgMain");
+    renderActivityPtr = getActivity("blockyProgMain");
     uiRender();
+    xTaskCreate(uiRun, "uiRun", 8192, NULL, 1, NULL);
 }
 
 void loop() {
-    getTouch();
-    btnMgr();
-    //uiRender();
-    tft.drawPixel(touchX, touchY, TFT_RED);
-    /* Serial.print(touchX);
-    Serial.print(",");
-    Serial.println(touchY); */
-    delay(5);           // 让出一点时间
 }
