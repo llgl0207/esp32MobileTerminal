@@ -9,6 +9,7 @@ uiSlider *sliderPtr;
 
 void uiRun(void *pvParameters){
     while(1){
+        blockyRuntimeStep();
         getTouch();
         btnMgr();
         //uiRender();
@@ -37,6 +38,7 @@ void setup() {
 }
 
 void loop() {
+    blockyRuntimeStep();
     getTouch();
     btnMgr();
     //uiRender();
