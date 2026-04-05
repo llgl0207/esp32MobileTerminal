@@ -1,15 +1,19 @@
 #include "UI.h"
 
 uiActivity::~uiActivity(){
-                for (auto element : uiElementsPool) {
-            delete element;
-        }
+    // Elements remove themselves from uiElementsPool in their destructors.
+    // Delete from back until empty to avoid iterator invalidation.
+    while(!uiElementsPool.empty()){
+        delete uiElementsPool.back();
+    }
 }
 uiElementBase::~uiElementBase(){
-            // 从容器中移除当前对象
-            auto it = find(thisActivity->uiElementsPool.begin(), thisActivity->uiElementsPool.end(), this);
-            thisActivity->uiElementsPool.erase(it);
-        }
+    // 从容器中移除当前对象
+    auto it = find(thisActivity->uiElementsPool.begin(), thisActivity->uiElementsPool.end(), this);
+    if(it != thisActivity->uiElementsPool.end()){
+        thisActivity->uiElementsPool.erase(it);
+    }
+}
 
 void uiButtonBase::Pressed(){
     lastInTheBtn = nowInTheBtn;
@@ -112,6 +116,9 @@ bool deleteActivity(char const* activityName){//删除一个activity,只返回�
     return false;
 }
 void uiRender(){
+    if(renderActivityPtr == nullptr){
+        return;
+    }
     tft.fillScreen(backgoundColor);
     //Serial.println("Drawing element...");
     for(auto element : renderActivityPtr->uiElementsPool){
@@ -154,19 +161,49 @@ void popUp(char const* text){
 }
 
 bool enteredNum = false;
-double uiInputNumber(){ 
+//一下代码原本是为了用键盘输入数字而准备，但是因为工程量较大所以放弃，准备改用已有的slider输入数字
+/* double uiInputNumber(){ 
     enteredNum = false;
     uiActivity* tempControlPtr = controlActivityPtr;
     uiActivity* tempRenderPtr = renderActivityPtr;
     controlActivityPtr = createActivity("InputNumber");
     renderActivityPtr = controlActivityPtr;
-    new uiDrawCallback();
-    uiText* numArray[10];
+    for(int i=0;i<10;i++){
+        uiInputNumArray[i]=0;
+    }
+    uiText* uiNumArray[10];
+    for(int i=0;i<10;i++){ 
+        uiNumArray[i] = new uiText("0",i*25+10,10,2,TFT_BLACK);
+    }
 
 
 
 
     controlActivityPtr = tempControlPtr;
     renderActivityPtr = tempRenderPtr;
+} */
+double uiInputNumberSliderX100(){
+    enteredNum = false;
+    uiActivity* tempControlPtr = controlActivityPtr;
+    uiActivity* tempRenderPtr = renderActivityPtr;
+    controlActivityPtr = createActivity("InputNumber");
+    renderActivityPtr = controlActivityPtr;
+
+    uiSlider* slider = new uiSlider("Control", 25, 120, 270, 0.0);
+    new uiText("Your input will x100", 10, 50, 2, TFT_BLACK);
+    new uiButton("OK", 135, 150, [](){
+        enteredNum = true;
+    }, 50, 25, TFT_CYAN, TFT_BLACK);
+    uiRender();
+    while(!enteredNum){
+        getTouch();
+        btnMgr();
+        vTaskDelay(5);
+    }
+    double result = slider->percentage*100;
+    controlActivityPtr = tempControlPtr;
+    renderActivityPtr = tempRenderPtr;
+    deleteActivity("InputNumber");
+    return result;
 }
 

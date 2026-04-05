@@ -1,4 +1,5 @@
 #include "blockyProg.h"
+#include "Arduino.h"
 std::vector<blockyBase*> blockyPool;
 uiSlider* blockyControlSlider;
 int16_t blockyStartX = 10;
@@ -71,6 +72,13 @@ void blockyProgInit(){
     new uiButton("<",10,170,blockyMoveLeft);
     new uiButton(">",260,170,blockyMoveRight);
     new uiButton("Add", 70, 170, switchToBlockyProgAdd);
+//这是一种输入数字实例，可供参考
+/*     new uiButton("Input", 130, 170, [](){
+        double num = uiInputNumberSliderX100();
+        static char buffer[48];
+        snprintf(buffer, sizeof(buffer), "You inputted: %.2f", num);
+        popUp(buffer);
+    }); */
     new uiDrawCallback(blockyMgr);
     blockyPool.push_back(new blockyStart());
     //uiButton *btn = new uiButton("Start", 10, 10, nullFunc, 50, 25);

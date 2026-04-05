@@ -33,8 +33,16 @@ void setup() {
     controlActivityPtr = getActivity("blockyProgMain");
     renderActivityPtr = getActivity("blockyProgMain");
     uiRender();
-    xTaskCreate(uiRun, "uiRun", 8192, NULL, 1, NULL);
+    //xTaskCreate(uiRun, "uiRun", 20480, NULL, 1, NULL);
 }
 
 void loop() {
+    getTouch();
+    btnMgr();
+    //uiRender();
+    tft.drawPixel(touchX, touchY, TFT_RED);
+    /* Serial.print(touchX);
+    Serial.print(",");
+    Serial.println(touchY); */
+    delay(5);           // 让出一点时间
 }

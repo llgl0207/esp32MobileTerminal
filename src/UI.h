@@ -14,7 +14,9 @@
     void popUpInverseColor();
     void popUp(char const* text);
     void nullFunc();
-    double uiInputNumber();
+    //extern uint8_t uiInputNumArray[10];//这两行原本是为了键盘输入数字，但是工程量来不及废弃了
+    //double uiInputNumber();
+    double uiInputNumberSliderX100();
     class uiElementBase;
     class uiButtonBase;
     class uiButton;
@@ -96,7 +98,9 @@
             ~uiButtonBase(){
                 // 从容器中移除当前对象
                 auto it = find(thisActivity->uiButtonsPool.begin(), thisActivity->uiButtonsPool.end(), this);
-                thisActivity->uiButtonsPool.erase(it);
+                if(it != thisActivity->uiButtonsPool.end()){
+                    thisActivity->uiButtonsPool.erase(it);
+                }
             }
         public:
             int16_t x, y, width, height; // 按钮的位置和尺寸
