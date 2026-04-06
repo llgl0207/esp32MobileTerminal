@@ -20,13 +20,10 @@ void uiRun(void *pvParameters){
         vTaskDelay(5);           // 让出一点时间
     }
 }
-uint8_t targetMac[6] = {0xDC,0xB4,0xD9,0x21,0x59,0x88};
 void setup() {
     Serial.begin(115200);
     //BCP初始化
-    initBCP();
-    pairDevice(targetMac);
-    initIoMsg();
+    
     //初始化 TFT
     tft.init();
     tft.setRotation(1);

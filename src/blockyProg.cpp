@@ -1,5 +1,8 @@
 #include "blockyProg.h"
 #include "Arduino.h"
+
+uint8_t targetMac[6] = {0xDC,0xB4,0xD9,0x21,0x59,0x88};
+
 std::vector<blockyBase*> blockyPool;
 uiSlider* blockyControlSlider;
 int16_t blockyStartX = 10;
@@ -65,6 +68,10 @@ void blockyMoveRight(){
     blockyControlSlider->percentage = (-blockyStartX)/(float)(getBlockyLength()-320);
 }
 void blockyProgInit(){
+    initBCP();
+    pairDevice(targetMac);
+    initIoMsg();
+
     uiActivity* tempControlPtr = controlActivityPtr;
     //blocky编程的主activity
     controlActivityPtr = createActivity("blockyProgMain");
@@ -94,9 +101,13 @@ void blockyProgInit(){
 }
 void switchToBlockyProgAdd(){
     renderActivityPtr = getActivity("blockyProgAdd");
+    BCPpinMode(targetMac, IO1, digitalWriteMode);
+    BCPdigitalWrite(targetMac, IO1, 1);
 }
 void switchToBlockyProgMain(){
     renderActivityPtr = getActivity("blockyProgMain");
+    BCPpinMode(targetMac, IO1, digitalWriteMode);
+    BCPdigitalWrite(targetMac, IO1, 0);
 }
 
 

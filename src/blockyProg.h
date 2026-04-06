@@ -1,6 +1,8 @@
 #ifndef BLOCKYPROG_H
 #define BLOCKYPROG_H 
     #include "UI.h"
+    #include "BCP.h"
+    extern uint8_t targetMac[6];
     #define blockyHeight 100
     void blockyProgInit();
     void blockyMgr();
