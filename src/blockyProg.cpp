@@ -158,7 +158,7 @@ static ioDefine selectIoWithSlider(ioDefine defaultIo = IO1){//通过slider选�
         vTaskDelay(5);
     }
 
-    int idx = (int)(gIoSelectSlider->percentage * 3.0f + 0.5f);
+    int idx = (int)(gIoSelectSlider->percentage * 3.0f + 0.5f);//巧妙地选择IO
     ioDefine result = indexToIo(idx);
     gIoSelectSlider = nullptr;
     controlActivityPtr = tempControlPtr;
@@ -357,7 +357,7 @@ void blockyProgInit(){
 
     //blocky编程的添加block的activity
     controlActivityPtr = createActivity("blockyProgAdd");
-    new uiText("0/0",10,190,2);
+    new uiText("1/1",10,190,2);
     new uiButton("<",10,205);
     new uiButton(">",260,205);
     new uiButton("Digital", 20, 60, addDigitalOutputBlock, 120, 50, TFT_GREEN, TFT_BLACK);
