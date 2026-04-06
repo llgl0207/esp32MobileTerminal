@@ -1,0 +1,44 @@
+//这是一段BCP库演示代码，代码中展示了如何控制一台下位机的IO1输出并读取IO47的数字量数据
+#include <Arduino.h>
+#include "BCP.h"
+
+uint8_t targetMac[6] = {0xDC,0xB4,0xD9,0x21,0x59,0x88};
+void setup() {
+	initBCP();
+	if(isMaster) {
+		//DC:B4:D9:21:59:88
+		pairDevice(targetMac);
+	}
+	initIoMsg();
+}
+void loop() {
+#if isMaster == 1
+	static uint32_t lastPairTryMs = 0;
+	if (millis() - lastPairTryMs > 2000) {
+		pairDevice(targetMac);
+		lastPairTryMs = millis();
+	}
+
+ 	/* ioMsgPack *msg = getIoMsgPtr(targetMac);
+	if(msg != nullptr){
+		msg->ioDef[0] = IO1;
+		msg->ioDef[5] = IO47;
+		msg->pinMode[0] = digitalWriteMode;
+		msg->pinMode[5] = digitalReadMode;
+		if(millis() % 1000 > 500){
+			msg->digitalWriteArray[0] = 0;
+		}
+		else{
+			msg->digitalWriteArray[0] = 1;
+		}
+		Serial.println(msg->digitalReadArray[5]);
+	} */
+	//用新API改写
+	BCPpinMode(targetMac, IO1, digitalWriteMode);
+	BCPpinMode(targetMac, IO47, digitalReadMode);
+	BCPdigitalWrite(targetMac, IO1, BCPdigitalRead(targetMac, IO47));
+	Serial.println(BCPdigitalRead(targetMac, IO47));
+
+	delay(20);
+#endif
+}

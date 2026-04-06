@@ -3,6 +3,7 @@
 #include <TFT_eSPI.h>
 #include "UI.h"
 #include "blockyProg.h"
+#include "BCP.h"
 
 
 uiSlider *sliderPtr;
@@ -19,10 +20,14 @@ void uiRun(void *pvParameters){
         vTaskDelay(5);           // 让出一点时间
     }
 }
+uint8_t targetMac[6] = {0xDC,0xB4,0xD9,0x21,0x59,0x88};
 void setup() {
     Serial.begin(115200);
-
-    // 1. 初始化 TFT
+    //BCP初始化
+    initBCP();
+    pairDevice(targetMac);
+    initIoMsg();
+    //初始化 TFT
     tft.init();
     tft.setRotation(1);
     tft.invertDisplay(false); // 修复 ST7789 屏幕反色问题
@@ -37,6 +42,13 @@ void setup() {
 }
 
 void loop() {
+    //BCP配对刷新
+    static uint32_t lastPairTryMs = 0;
+	if (millis() - lastPairTryMs > 2000) {
+		pairDevice(targetMac);
+		lastPairTryMs = millis();
+	}
+
     getTouch();
     btnMgr();
     //uiRender();
