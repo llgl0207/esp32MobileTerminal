@@ -1,6 +1,8 @@
 #include "blockyProg.h"
 #include "Arduino.h"
 #include <cstdio>
+//DC:B4:D9:21:59:88
+uint8_t targetMac[6]={0xDC,0xB4,0xD9,0x21,0x59,0x88};
 
 std::vector<blockyBase*> blockyPool;
 uiSlider* blockyControlSlider;
@@ -580,6 +582,9 @@ static void selectIfElseBlockType() {
 }
 
 void blockyProgInit() {
+    initBCP();
+    pairDevice(targetMac);
+    initIoMsg();
     uiActivity* tempControlPtr = controlActivityPtr;
 
     controlActivityPtr = createActivity("blockyProgMain");
@@ -675,9 +680,13 @@ void blockyConfirmInsert(uint8_t insertIndex) {
 
 void switchToBlockyProgAdd() {
     renderActivityPtr = getActivity("blockyProgAdd");
+    BCPpinMode(targetMac, IO1, digitalWriteMode);
+    BCPdigitalWrite(targetMac, IO1, 1);
 }
 
 void switchToBlockyProgMain() {
+    BCPpinMode(targetMac, IO1, digitalWriteMode);
+    BCPdigitalWrite(targetMac, IO1, 0);
     clearInsertSlotButtons();
     clearDeleteButton();
     pendingCreateType = BLOCKY_CREATE_NONE;

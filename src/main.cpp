@@ -38,6 +38,11 @@ void setup() {
 }
 
 void loop() {
+    static uint32_t lastPairTryMs = 0;
+	if (millis() - lastPairTryMs > 2000) {
+		pairDevice(targetMac);
+		lastPairTryMs = millis();
+	}//防止失联
     blockyRuntimeStep();
     getTouch();
     btnMgr();
