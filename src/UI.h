@@ -5,17 +5,40 @@
 
 #ifndef UI_H
 #define UI_H
-    extern uint32_t backgoundColor; // 声明全局背景颜色变量
+    extern uint32_t backgoundColor; // 全局背景色（RGB565）
     extern bool enteredNum;
-    void uiRender();//渲染函数，执行该函数将直接渲染单帧
-    void lowRender();//渲染函数，执行该函数将拉大延迟渲染单帧
+    // 立即执行一帧完整渲染。
+    // 输入: 无。输出: 无。
+    // 功能: 清屏并绘制当前renderActivityPtr下的全部UI元素。
+    void uiRender();
+
+    // 降频渲染函数。
+    // 输入: 无。输出: 无。
+    // 功能: 通过内部计数器降低重绘频率，减少长按拖拽时的刷新负载。
+    void lowRender();
+
+    // 触摸事件分发器。
+    // 输入: 无。输出: 无。
+    // 功能: 倒序遍历按钮池，保证后绘制的控件优先响应触摸。
     void btnMgr();
 
+    // 弹窗遮罩反色回调。
+    // 输入/输出: 无。功能: 通过反色反馈遮罩被按下状态。
     void popUpInverseColor();
+
+    // 创建简易弹窗。
+    // 输入: text 为弹窗显示文本。
+    // 输出: 无。功能: 创建全屏遮罩按钮和关闭按钮。
     void popUp(char const* text);
+
+    // 空操作回调。
+    // 输入/输出: 无。功能: 用作默认函数指针，避免空指针调用。
     void nullFunc();
     //extern uint8_t uiInputNumArray[10];//这两行原本是为了键盘输入数字，但是工程量来不及废弃了
     //double uiInputNumber();
+    // 通过滑块输入0~100范围的数值。
+    // 输入: 无。
+    // 输出: double，物理意义为百分比量（0~100），可用于占空比等参数输入。
     double uiInputNumberSliderX100();
     class uiElementBase;
     class uiButtonBase;
@@ -37,8 +60,19 @@
     extern uiActivity* controlActivityPtr;
     extern uiActivity* renderActivityPtr;
 
+    // 创建活动页面。
+    // 输入: activityName 为页面名称。
+    // 输出: 成功返回新页面指针；同名已存在返回nullptr。
     uiActivity* createActivity(char const* activityName);
+
+    // 按名称获取活动页面。
+    // 输入: activityName 为页面名称。
+    // 输出: 页面指针；未找到返回nullptr。
     uiActivity* getActivity(char const* activityName);
+
+    // 删除活动页面并释放其控件。
+    // 输入: activityName 为页面名称。
+    // 输出: true 删除成功，false 表示未找到。
     bool        deleteActivity(char const* activityName);
     
 

@@ -1,6 +1,7 @@
 #include "BCP.h"
 #include <esp_wifi.h>
 
+// 主机MAC缓存：从机收到握手帧后更新，用于后续状态回传。
 uint8_t masterMac[6]={0x00,0x00,0x00,0x00,0x00,0x00};//主机mac地址，初始为全0
 const uint8_t nullMac[6]={0x00,0x00,0x00,0x00,0x00,0x00};
 //////////////////////主从机不同的全局变量列表////////////////////////
@@ -18,13 +19,25 @@ const uint8_t nullMac[6]={0x00,0x00,0x00,0x00,0x00,0x00};
 #elif isMaster == 1
     std::vector<ioMsgPack> ioMsgPool;
 #endif
-// 1. 发送回调函数 - 最简单的版本
+// 函数功能: ESP-NOW发送结果回调。
+// 输入参数:
+// mac_addr -> 目标设备MAC地址（物理意义: 这一帧发往哪块板）。
+// status   -> 底层发送状态（物理意义: 无线链路是否确认成功）。
+// 输出参数: 无（通过串口输出调试信息）。
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
     // 这里可以添加发送结果的处理逻辑
     Serial.printf("ESP_NOW发送成功, 状态: %s\n", status == ESP_NOW_SEND_SUCCESS ? "成功" : "失败");
 }
 
-// 2. 接收回调函数 - 最简单的版本
+// 函数功能: ESP-NOW接收回调，解析握手帧/IO数据帧并同步状态。
+// 输入参数:
+// mac  -> 实际发送方MAC地址（物理意义: 数据来源设备）。
+// data -> 接收字节流，data[0]是帧类型。
+// len  -> 接收字节数。
+// 输出参数: 无（更新全局状态池）。
+// 算法说明:
+// 1) data[0]==0x00: 握手帧；从机记录主机MAC并建立peer。
+// 2) data[0]==0x01: IO帧；主机更新采样值，从机更新控制指令。
 void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
     Serial.printf("ESP_NOW收到数据, 长度: %d\n", len);
     if(data[0]== 0x00){
@@ -33,7 +46,8 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
             memcpy(masterMac, data+1, 6);
             memcpy(&ioMsg.mac, data+1, 6);
 
-            // 从机收到主机握手后，必须把主机加入peer，才能向主机发送状态/回包。
+            // 语句组功能: 从机将主机写入peer表。
+            // 实现思路: ESP-NOW发送到某目标前必须先add_peer，否则回传失败。
             esp_now_peer_info_t peerInfo;
             memset(&peerInfo, 0, sizeof(peerInfo));
             memcpy(peerInfo.peer_addr, masterMac, 6);
@@ -53,7 +67,8 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
         #if isMaster == 1
             // 主机端以回调参数mac为准：它是实际发送方(从机)MAC。
             memcpy(received.mac, mac, 6);
-            //遍历ioMsgPool查找有无对应的mac地址
+            // 语句组功能: 查找并增量更新对应从机的采样缓存。
+            // 实现思路: 主机控制参数以本地为准，只覆写反馈数组避免误覆盖命令。
             for(auto & msg : ioMsgPool){
                 if(memcmp(msg.mac, received.mac, 6) == 0){
                     //找到对应mac地址，更新数据
@@ -65,7 +80,8 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
             }
             ioMsgPool.push_back(received);
         #elif isMaster == 0
-        //从机只接收控制指令
+        // 语句组功能: 从机仅接收控制配置，不使用主机回传采样值。
+        // 实现思路: 按字段拷贝模式与输出数组，让周期任务统一执行硬件读写。
         memcpy(&ioMsg.id, &received.id, sizeof(received.id));
         memcpy(&ioMsg.ioDef, &received.ioDef, sizeof(received.ioDef));
         memcpy(&ioMsg.pinMode, &received.pinMode, sizeof(received.pinMode));
@@ -75,7 +91,10 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
     }
 }
 #if isMaster == 1
-    //主机才能发起配对
+    // 函数功能: 主机发起配对，必要时先添加peer再发送握手。
+    // 输入参数: targetMac -> 目标从机MAC地址。
+    // 输出参数: 返回配对流程是否触发成功。
+    // 算法说明: 若peer已存在直接握手；否则add_peer成功后再握手。
     bool pairDevice(uint8_t* targetMac) {
         if (esp_now_is_peer_exist(targetMac)) {
             sendMasterMsg(targetMac);
@@ -97,6 +116,9 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
         Serial.println("配对失败");
         return false;
     }
+    // 函数功能: 根据MAC在主机消息池中查找对应设备状态包。
+    // 输入参数: targetMac -> 目标从机MAC地址。
+    // 输出参数: ioMsgPack*，不存在时为nullptr。
     ioMsgPack* getIoMsgPtr(uint8_t* targetMac){
         for(auto & msg : ioMsgPool){
             if(memcmp(msg.mac, targetMac, 6) == 0){
@@ -107,6 +129,7 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
 
     }
 #elif isMaster == 0
+    // 从机侧不主动配对，返回false用于上层区分角色行为。
     bool pairDevice(uint8_t* targetMac) {
         return false;
     }
@@ -115,6 +138,10 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
 // 4. 发送消息 - 最简单的版本
 
 #if isMaster == 1
+    // 函数功能: 发送主机握手包。
+    // 输入参数: targetMac -> 从机MAC地址。
+    // 输出参数: 无。
+    // 算法说明: 帧格式为[0x00][主机6字节MAC]。
     void sendMasterMsg(uint8_t* targetMac){
         uint8_t sendPack[7];
         sendPack[0] = 0x00;// 消息类型标识,0是主机配对消息
@@ -125,6 +152,10 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
         esp_now_send(targetMac, sendPack, sizeof(sendPack));
     }
 #endif
+// 函数功能: 发送IO控制/状态包。
+// 输入参数: ioMsg -> 待发送数据包，ioMsg->mac为目标地址。
+// 输出参数: 无（失败时串口打印错误码与目标地址）。
+// 算法说明: 在负载头部插入类型字节0x01，后接ioMsgPack二进制内容。
 void sendIoMsg(ioMsgPack* ioMsg) {
     uint8_t sendPack[sizeof(*ioMsg)+1];
     sendPack[0] = 0x01; // 消息类型标识,1是ioMsgPack
@@ -138,6 +169,9 @@ void sendIoMsg(ioMsgPack* ioMsg) {
     }
 }
 
+// 函数功能: 初始化通信环境。
+// 输入/输出: 无。
+// 语句组功能: 配置STA模式、初始化ESP-NOW、注册收发回调。
 void initBCP(){
     Serial.begin(115200);
     WiFi.mode(WIFI_STA);
@@ -153,12 +187,20 @@ void initBCP(){
     esp_now_register_recv_cb(OnDataRecv);
 }
 
+// 函数功能: FreeRTOS周期任务，驱动主从机IO同步。
+// 输入参数: parameter -> 任务参数，当前未使用。
+// 输出参数: 无（无限循环）。
+// 算法说明:
+// 从机: 根据pinMode执行本地读写并上报。
+// 主机: 轮询消息池向每个从机下发当前控制指令。
 void updateIoMsg(void* parameter){
     while(1){
         #if isMaster == 0
             if(memcmp(&ioMsg.mac, &nullMac, 6)==0){
                //还没有和主机配对    
             }else{
+                // 语句组功能: 遍历10个逻辑槽位，统一处理模式切换和IO读写。
+                // 实现思路: 将远端配置转成本地硬件API调用，便于协议与硬件层解耦。
                 for(int i = 0; i < 10; i++){
                     if(ioMsg.pinMode[i] == digitalWriteMode){
                         pinMode(ioMsg.ioDef[i], OUTPUT);
@@ -182,6 +224,7 @@ void updateIoMsg(void* parameter){
                 sendIoMsg(&ioMsg);
             }
         #elif isMaster == 1
+            // 语句组功能: 主机逐设备下发当前缓存控制帧。
             for(auto & msg : ioMsgPool){
                 sendIoMsg(&msg);
             }
@@ -191,9 +234,13 @@ void updateIoMsg(void* parameter){
     }
 };
 void initIoMsg(){
+    // 语句组功能: 创建后台任务，周期执行updateIoMsg。
     xTaskCreate(updateIoMsg, "updateIoMsg", 4096, NULL, 1, NULL);
 }
 #if isMaster == 1
+        // 函数功能: 查找指定物理IO在消息包中的槽位索引。
+        // 输入参数: msg -> 设备消息包；io -> 目标物理引脚。
+        // 输出参数: 返回[0,9]有效索引，未找到返回-1。
         static int findIoSlot(const ioMsgPack* msg, ioDefine io){
             for(int i = 0; i < 10; i++){
                 if(msg->ioDef[i] == io){
@@ -202,7 +249,9 @@ void initIoMsg(){
             }
             return -1;
         }
-
+    // 函数功能: 写入远端引脚模式缓存。
+    // 输入参数: targetMac/io/mode。
+    // 输出参数: bool，表示是否写入成功。
         bool BCPpinMode(uint8_t* targetMac, ioDefine io, ioMode mode){
             ioMsgPack *msg = getIoMsgPtr(targetMac);
             if(msg != nullptr){
@@ -214,6 +263,9 @@ void initIoMsg(){
                 return false;
             }
         }
+        // 函数功能: 写入远端数字输出缓存。
+        // 输入参数: value为逻辑电平(0/1)。
+        // 输出参数: bool，表示是否写入成功。
         bool BCPdigitalWrite(uint8_t* targetMac, ioDefine io, int8_t value){
             ioMsgPack *msg = getIoMsgPtr(targetMac);
             if(msg != nullptr){
@@ -225,6 +277,8 @@ void initIoMsg(){
                 return false;
             }
         }
+        // 函数功能: 读取远端数字输入缓存。
+        // 输出参数: 0/1有效，-1表示目标或引脚无效。
         int8_t BCPdigitalRead(uint8_t* targetMac, ioDefine io){
             ioMsgPack *msg = getIoMsgPtr(targetMac);
             if(msg != nullptr){
@@ -235,6 +289,9 @@ void initIoMsg(){
                 return -1;
             }
         }
+        // 函数功能: 写入远端模拟输出缓存。
+        // 输入参数: value为模拟控制量（常用于PWM）。
+        // 输出参数: bool，表示是否写入成功。
         bool BCPanalogWrite(uint8_t* targetMac, ioDefine io, int value){
             ioMsgPack *msg = getIoMsgPtr(targetMac);
             if(msg != nullptr){
@@ -246,6 +303,8 @@ void initIoMsg(){
                 return false;
             }
         }
+        // 函数功能: 读取远端模拟输入缓存。
+        // 输出参数: ADC值，-1表示目标或引脚无效。
         int BCPanalogRead(uint8_t* targetMac, ioDefine io){
             ioMsgPack *msg = getIoMsgPtr(targetMac);
             if(msg != nullptr){
